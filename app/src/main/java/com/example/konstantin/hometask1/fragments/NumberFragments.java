@@ -21,11 +21,10 @@ public class NumberFragments extends Fragment {
     private static final String STATE_NUMBER = "number";
     private static final String COUNTDOWN = "countdown";
     public boolean countdown = false;
-    private boolean pause = false;
+    //private boolean pause = false;
     public int number = 0;
 
     CountDownTimer timer;
-    private SecondActivity activity;
     private TextView view;
     private Button button;
 
@@ -43,7 +42,7 @@ public class NumberFragments extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        activity = (SecondActivity) getActivity();
+        SecondActivity activity = (SecondActivity) getActivity();
         view = activity.t;
         button = activity.b;
         if (number != 0){
@@ -64,21 +63,8 @@ public class NumberFragments extends Fragment {
 
         if(countdown){
             Log.d(FRAGMENT_TAG, "countdown");
-            timer = new CountDownTimer(1000 * (1000 - number), 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    number++;
-                    view.setText(numberToString(number));
-                }
-
-                @Override
-                public void onFinish() {
-                    Log.d(FRAGMENT_TAG, "Finish_timer");
-                    countdown = false;
-                    number = 0;
-                    button.setText(R.string.start_timer_btn);
-                }
-            }.start();
+            createNewTimer();
+            timer.start();
         }
             //startTimer();
     }
@@ -87,35 +73,26 @@ public class NumberFragments extends Fragment {
     public void onPause() {
         Log.d(FRAGMENT_TAG, "onPause");
         super.onPause();
-        if (timer != null)
+        if((timer != null) && countdown){
+            Log.d(FRAGMENT_TAG, "pause");
             timer.cancel();
-        if (countdown){
-            pause = true;
+            createNewTimer();
         }
+
 
     }
 
     public void onResume() {
         super.onResume();
+        if(countdown){
+            Log.d(FRAGMENT_TAG, "Restart");
+            timer.cancel();
+            timer.start();
+        }
 
         Log.d(FRAGMENT_TAG, "onResume");
-        if ((timer == null) && pause) {
-            button.setText(R.string.stop_timer_btn);
-            timer = new CountDownTimer(1000 * (1000 - number), 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    number++;
-                    view.setText(numberToString(number));
-                }
 
-                @Override
-                public void onFinish() {
-                    countdown = false;
-                    number = 0;
-                    button.setText(R.string.start_timer_btn);
-                }
-            }.start();
-        }
+
     }
 
     @Override
@@ -125,7 +102,7 @@ public class NumberFragments extends Fragment {
             timer.cancel();
         if (countdown)
             countdown = false;
-        pause = false;
+        //pause = false;
         super.onDetach();
     }
 
@@ -141,21 +118,8 @@ public class NumberFragments extends Fragment {
         Log.d(FRAGMENT_TAG, "start timer");
         if(!countdown){
             countdown = true;
-            timer = new CountDownTimer(1000 * (1000 - number), 1000) {
-                @Override
-                public void onTick(long millisUntilFinished) {
-                    //Log.d(FRAGMENT_TAG, Long.toString(millisUntilFinished));
-                    number++;
-                    view.setText(numberToString(number));
-                }
-
-                @Override
-                public void onFinish() {
-                    countdown = false;
-                    number = 0;
-                    button.setText(R.string.start_timer_btn);
-                }
-            }.start();
+            createNewTimer();
+            timer.start();
         }
     }
 
@@ -310,6 +274,24 @@ public class NumberFragments extends Fragment {
         }
 
         return strNumber;
+    }
+
+    private void createNewTimer(){
+        timer = new CountDownTimer(1000 * (1000 - number), 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                //Log.d(FRAGMENT_TAG, Long.toString(millisUntilFinished));
+                number++;
+                view.setText(numberToString(number));
+            }
+
+            @Override
+            public void onFinish() {
+                countdown = false;
+                number = 0;
+                button.setText(R.string.start_timer_btn);
+            }
+        };
     }
 
 
